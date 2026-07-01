@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  type PanInfo,
+} from "framer-motion";
 import type { Product } from "@/lib/products";
 import { Photo } from "./Photo";
 import { ShopifyBuyButton } from "./ShopifyBuyButton";
@@ -14,11 +21,197 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const FOCUSABLE =
   'a[href], button:not([disabled]), input, iframe, [tabindex]:not([tabindex="-1"])';
 
+const clampIndex = (i: number, count: number) =>
+  Math.max(0, Math.min(count - 1, i));
+
+const trackTransition = (reduce: boolean | null) =>
+  reduce
+    ? { duration: 0 }
+    : ({ type: "tween", duration: 0.5, ease: EASE } as const);
+
+/** A single overlaid navigation arrow (desktop only). Disabled at the boundary. */
+function GalleryArrow({
+  dir,
+  disabled,
+  onClick,
+}: {
+  dir: "prev" | "next";
+  disabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={dir === "prev" ? "Previous image" : "Next image"}
+      className={cn(
+        "absolute top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-bone/85 text-umber shadow-[0_6px_20px_-8px_rgba(58,46,32,0.6)] backdrop-blur-sm transition md:flex",
+        dir === "prev" ? "left-3" : "right-3",
+        disabled
+          ? "cursor-not-allowed opacity-0"
+          : "opacity-100 hover:bg-bone hover:text-espresso",
+      )}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        className="h-5 w-5"
+      >
+        {dir === "prev" ? <path d="M15 6l-6 6 6 6" /> : <path d="M9 6l6 6-6 6" />}
+      </svg>
+    </button>
+  );
+}
+
+/**
+ * Image gallery: a draggable/swipeable track of all images plus a thumbnail row.
+ * Navigation is bounded (no wrap) — the first image blocks a leftward move and
+ * the last blocks a rightward one. Desktop shows arrows; mobile swipes.
+ */
+function Gallery({
+  product,
+  active,
+  setActive,
+  reduce,
+}: {
+  product: Product;
+  active: number;
+  setActive: (i: number) => void;
+  reduce: boolean | null;
+}) {
+  const gallery = product.gallery ?? [];
+  const count = gallery.length;
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+
+  // Measure the viewport width so the track can translate in pixels and the
+  // drag can be constrained precisely to the first/last slide.
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const update = () => setWidth(el.clientWidth);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Drive the track position directly with a MotionValue so it can always be
+  // re-snapped to the active slide. Relying on framer's `animate` prop alone is
+  // not enough: with dragMomentum disabled, a drag settles wherever the finger
+  // lifts, and the prop only re-animates when `active` changes — so a boundary
+  // drag or a sub-threshold nudge would leave the track resting mid-slide.
+  const x = useMotionValue(0);
+
+  const go = useCallback(
+    (i: number) => setActive(clampIndex(i, count)),
+    [setActive, count],
+  );
+
+  const atStart = active === 0;
+  const atEnd = active === count - 1;
+
+  // Snap to the active slide whenever it changes (arrows/thumbnails/keyboard)
+  // or the viewport is (re)measured.
+  useEffect(() => {
+    const controls = animate(x, -active * width, trackTransition(reduce));
+    return () => controls.stop();
+  }, [active, width, reduce, x]);
+
+  const onDragEnd = (_e: unknown, info: PanInfo) => {
+    const distance = width * 0.18; // ~a fifth of a slide commits the move
+    const flung = Math.abs(info.velocity.x) > 500;
+    let dir = 0;
+    if (info.offset.x < -distance || (flung && info.velocity.x < 0)) dir = 1;
+    else if (info.offset.x > distance || (flung && info.velocity.x > 0)) dir = -1;
+
+    const next = clampIndex(active + dir, count);
+    if (next !== active) {
+      setActive(next); // the effect above animates the track to the new slide
+    } else {
+      // no-op move (boundary or sub-threshold): re-snap to the current slide
+      animate(x, -active * width, trackTransition(reduce));
+    }
+  };
+
+  return (
+    <div className="bg-linen p-4 sm:p-6">
+      <div ref={trackRef} className="relative overflow-hidden rounded-sm">
+        <motion.div
+          className={cn("flex", count > 1 && "cursor-grab active:cursor-grabbing")}
+          drag={count > 1 ? "x" : false}
+          dragConstraints={{ left: -width * (count - 1), right: 0 }}
+          dragElastic={reduce ? 0 : 0.12}
+          dragMomentum={false}
+          style={{ x }}
+          onDragEnd={onDragEnd}
+        >
+          {gallery.map((src, i) => (
+            <div key={src + i} className="w-full shrink-0 select-none">
+              <Photo
+                src={src}
+                alt={i === active ? product.alt : ""}
+                label={product.name}
+                sizes="(max-width: 768px) 92vw, 45vw"
+                className="pointer-events-none aspect-square w-full rounded-sm"
+                priority={i === 0}
+              />
+            </div>
+          ))}
+        </motion.div>
+
+        {count > 1 && (
+          <>
+            <GalleryArrow dir="prev" disabled={atStart} onClick={() => go(active - 1)} />
+            <GalleryArrow dir="next" disabled={atEnd} onClick={() => go(active + 1)} />
+          </>
+        )}
+      </div>
+
+      {count > 1 && (
+        <div aria-live="polite" className="sr-only">
+          {`Image ${active + 1} of ${count}`}
+        </div>
+      )}
+
+      {count > 1 && (
+        <div
+          role="group"
+          aria-label={`${product.name} images`}
+          className="mt-3 flex gap-3 overflow-x-auto pb-1"
+        >
+          {gallery.map((src, i) => (
+            <button
+              key={src + i}
+              type="button"
+              onClick={() => go(i)}
+              aria-label={`Show image ${i + 1} of ${count}`}
+              aria-current={i === active}
+              className={cn(
+                "relative h-16 w-16 shrink-0 overflow-hidden rounded-sm ring-1 ring-umber/15 transition",
+                i === active ? "ring-2 ring-olive" : "opacity-80 hover:opacity-100",
+              )}
+            >
+              <Photo src={src} alt="" className="h-16 w-16" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Centered quick-view modal: image gallery (main image + thumbnail row, swipeable
- * on mobile) plus the product details and the Pre-order link. Closes via the X
- * button, Escape, or a click on the backdrop. Traps focus while open, locks body
- * scroll, and restores focus to the trigger on close.
+ * on mobile, arrow-navigable on desktop) plus the product details and the
+ * Pre-order link. Closes via the X button, Escape, or a click on the backdrop.
+ * Traps focus while open, locks body scroll, and restores focus to the trigger.
  */
 export function QuickView({
   product,
@@ -34,12 +227,19 @@ export function QuickView({
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
-  const touchX = useRef<number | null>(null);
 
   useEffect(() => setMounted(true), []);
 
+  const gallery = product?.gallery ?? [];
+  const count = gallery.length;
+
+  const step = useCallback(
+    (dir: number) => setActive((i) => clampIndex(i + dir, count)),
+    [count],
+  );
+
   // Open/close side effects: remember the trigger, lock scroll, focus the close
-  // button, listen for Escape — then undo it all (incl. restoring focus) on close.
+  // button, listen for Escape + arrow keys — then undo it all on close.
   useEffect(() => {
     if (!product) return;
 
@@ -50,6 +250,8 @@ export function QuickView({
     const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowLeft") step(-1);
+      else if (e.key === "ArrowRight") step(1);
     };
     window.addEventListener("keydown", onKey);
 
@@ -59,17 +261,7 @@ export function QuickView({
       document.body.style.overflow = "";
       restoreRef.current?.focus?.();
     };
-  }, [product, onClose]);
-
-  const gallery = product?.gallery ?? [];
-
-  const step = useCallback(
-    (dir: number) => {
-      if (gallery.length < 2) return;
-      setActive((i) => (i + dir + gallery.length) % gallery.length);
-    },
-    [gallery.length],
-  );
+  }, [product, onClose, step]);
 
   // keep focus inside the dialog while tabbing
   function onKeyDownTrap(e: React.KeyboardEvent) {
@@ -87,16 +279,6 @@ export function QuickView({
       e.preventDefault();
       first.focus();
     }
-  }
-
-  function onTouchStart(e: React.TouchEvent) {
-    touchX.current = e.touches[0].clientX;
-  }
-  function onTouchEnd(e: React.TouchEvent) {
-    if (touchX.current == null) return;
-    const dx = e.changedTouches[0].clientX - touchX.current;
-    if (Math.abs(dx) > 40) step(dx < 0 ? 1 : -1);
-    touchX.current = null;
   }
 
   if (!mounted) return null;
@@ -148,50 +330,12 @@ export function QuickView({
             </button>
 
             <div className="grid min-h-0 overflow-y-auto md:grid-cols-2">
-              {/* gallery */}
-              <div className="bg-linen p-4 sm:p-6">
-                <div
-                  onTouchStart={onTouchStart}
-                  onTouchEnd={onTouchEnd}
-                  className="touch-pan-y select-none"
-                >
-                  <Photo
-                    key={gallery[active]}
-                    src={gallery[active]}
-                    alt={product.alt}
-                    label={product.name}
-                    sizes="(max-width: 768px) 92vw, 45vw"
-                    className="aspect-square w-full rounded-sm"
-                    priority
-                  />
-                </div>
-
-                {gallery.length > 1 && (
-                  <div
-                    role="group"
-                    aria-label={`${product.name} images`}
-                    className="mt-3 flex gap-3 overflow-x-auto pb-1"
-                  >
-                    {gallery.map((src, i) => (
-                      <button
-                        key={src + i}
-                        type="button"
-                        onClick={() => setActive(i)}
-                        aria-label={`Show image ${i + 1} of ${gallery.length}`}
-                        aria-current={i === active}
-                        className={cn(
-                          "relative h-16 w-16 shrink-0 overflow-hidden rounded-sm ring-1 ring-umber/15 transition",
-                          i === active
-                            ? "ring-2 ring-olive"
-                            : "opacity-80 hover:opacity-100",
-                        )}
-                      >
-                        <Photo src={src} alt="" className="h-16 w-16" />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <Gallery
+                product={product}
+                active={active}
+                setActive={setActive}
+                reduce={reduce}
+              />
 
               {/* details */}
               <div className="flex flex-col gap-5 p-6 pt-12 sm:p-8 md:pt-8 lg:p-10">

@@ -41,20 +41,24 @@ export function Hero() {
       aria-label="Cana — the first collection"
       className="relative isolate overflow-hidden bg-bone"
     >
-      {/* ── MOBILE (< sm): stacked — copy on bone up top, the photo shown
-             in full as its own band below, so the tablescape reads clearly. ── */}
-      <div className="flex min-h-[92svh] flex-col sm:hidden">
-        <div className="px-6 pb-10 pt-[104px]">
+      {/* ── MOBILE (< sm): stacked — copy on bone up top, then the photo as a
+             square band below. A square crop is wide enough to hold the whole
+             trio (mug / dish / luminary), centered rather than cut off. ── */}
+      <div className="flex flex-col sm:hidden">
+        <div className="px-6 pb-12 pt-[104px]">
           <HeroText />
         </div>
-        <div className="relative w-full flex-1">
+        <div className="relative aspect-square w-full">
+          {/* Square crop pinned to the right (object-x 100%) trims the empty
+              curtain on the left, pulling the mug / dish / luminary trio
+              toward the centre-left of the frame. */}
           <Image
             src="/images/hero.png"
             alt="A warm morning tablescape in soft natural light — Cana stoneware resting on a linen-draped table."
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[62%_center]"
+            className="object-cover object-[100%_center]"
           />
           {/* gentle top feather so the photo melts out of the bone above it */}
           <div
