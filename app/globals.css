@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* offset for the sticky header when jumping to anchors */
+  scroll-padding-top: 88px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  background-color: #f4edde; /* bone */
+  color: #3a2e20; /* espresso */
+  font-feature-settings: "kern", "liga";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Calm, accessible focus ring in brand colors */
+:where(a, button, input, [tabindex]):focus-visible {
+  outline: 2px solid #7c7a53; /* olive */
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: #b5934e33; /* gold @ low opacity */
+  color: #3a2e20;
+}

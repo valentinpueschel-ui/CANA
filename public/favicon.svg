@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="20" fill="#F4EDDE"/>
+  <circle cx="60" cy="60" r="44" fill="none" stroke="#54442F" stroke-width="2.5"/>
+  <circle cx="60" cy="60" r="36" fill="none" stroke="#54442F" stroke-width="1.2" opacity="0.55"/>
+  <text x="60" y="70" text-anchor="middle" fill="#54442F"
+    font-family="Georgia, 'Cormorant Garamond', serif" font-size="34" letter-spacing="3">C</text>
+</svg>
