@@ -79,15 +79,19 @@ function Gallery({
   active,
   setActive,
   reduce,
+  onOpenZoom,
 }: {
   product: Product;
   active: number;
   setActive: (i: number) => void;
   reduce: boolean | null;
+  onOpenZoom: () => void;
 }) {
   const gallery = product.gallery ?? [];
   const count = gallery.length;
   const trackRef = useRef<HTMLDivElement>(null);
+  // distinguishes a genuine tap (open the zoom view) from the end of a swipe.
+  const draggingRef = useRef(false);
   const [width, setWidth] = useState(0);
 
   // Measure the viewport width so the track can translate in pixels and the
@@ -142,15 +146,31 @@ function Gallery({
 
   return (
     <div className="bg-linen p-4 sm:p-6">
-      <div ref={trackRef} className="relative overflow-hidden rounded-sm">
+      {/* touch-none: the horizontal swipe never turns into a vertical page scroll */}
+      <div ref={trackRef} className="relative touch-none overflow-hidden rounded-sm">
         <motion.div
-          className={cn("flex", count > 1 && "cursor-grab active:cursor-grabbing")}
+          className={cn(
+            "flex cursor-zoom-in",
+            count > 1 && "active:cursor-grabbing",
+          )}
           drag={count > 1 ? "x" : false}
+          dragDirectionLock
           dragConstraints={{ left: -width * (count - 1), right: 0 }}
           dragElastic={reduce ? 0 : 0.12}
           dragMomentum={false}
           style={{ x }}
+          onPointerDown={() => {
+            draggingRef.current = false;
+          }}
+          onDragStart={() => {
+            draggingRef.current = true;
+          }}
           onDragEnd={onDragEnd}
+          onClick={() => {
+            // ignore the click that ends a swipe; a real tap opens the zoom view
+            if (draggingRef.current) return;
+            onOpenZoom();
+          }}
         >
           {gallery.map((src, i) => (
             <div key={src + i} className="w-full shrink-0 select-none">
@@ -208,6 +228,186 @@ function Gallery({
 }
 
 /**
+ * Full-screen image viewer ("lightbox"). Opens when the shopper taps the main
+ * gallery image, so they can inspect a piece up close like on a store's product
+ * page. Tap the image to zoom in/out; when zoomed, drag to pan. Arrows (desktop)
+ * or swipe (mobile) move between images, bounded. Closes via X / Escape /
+ * backdrop. Escape is handled by the parent so it closes the lightbox first.
+ */
+function Lightbox({
+  images,
+  active,
+  setActive,
+  alt,
+  name,
+  reduce,
+  onClose,
+}: {
+  images: string[];
+  active: number;
+  setActive: (i: number) => void;
+  alt: string;
+  name: string;
+  reduce: boolean | null;
+  onClose: () => void;
+}) {
+  const count = images.length;
+  const [zoomed, setZoomed] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  // distinguishes a tap (toggle zoom) from the end of a swipe/pan drag.
+  const draggingRef = useRef(false);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  // scale lives in `style` alongside x/y so all three share one transform
+  // (framer ignores an `animate` transform prop when x/y are style MotionValues).
+  const scale = useMotionValue(1);
+
+  const atStart = active === 0;
+  const atEnd = active === count - 1;
+
+  // A new image always starts un-zoomed and centered.
+  useEffect(() => {
+    setZoomed(false);
+    x.set(0);
+    y.set(0);
+    scale.set(1);
+  }, [active, x, y, scale]);
+
+  // Zoom in/out; zooming back out also glides the pan back to centre.
+  useEffect(() => {
+    animate(scale, zoomed ? 2.2 : 1, trackTransition(reduce));
+    if (!zoomed) {
+      animate(x, 0, trackTransition(reduce));
+      animate(y, 0, trackTransition(reduce));
+    }
+  }, [zoomed, x, y, scale, reduce]);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => closeRef.current?.focus(), 30);
+    return () => window.clearTimeout(t);
+  }, []);
+
+  const goTo = (i: number) => setActive(clampIndex(i, count));
+
+  const onDragEnd = (_e: unknown, info: PanInfo) => {
+    if (zoomed) return; // when zoomed, a drag pans the image (no navigation)
+    const w = stageRef.current?.clientWidth ?? 0;
+    const distance = Math.max(60, w * 0.12);
+    const flung = Math.abs(info.velocity.x) > 500;
+    let dir = 0;
+    if (info.offset.x < -distance || (flung && info.velocity.x < 0)) dir = 1;
+    else if (info.offset.x > distance || (flung && info.velocity.x > 0)) dir = -1;
+    const next = clampIndex(active + dir, count);
+    if (next !== active) setActive(next); // the effect above re-centres x
+    else animate(x, 0, trackTransition(reduce)); // snap back
+  };
+
+  const arrowBase =
+    "absolute top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-bone/90 text-umber transition md:flex";
+
+  return createPortal(
+    <motion.div
+      ref={stageRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${name} — enlarged view`}
+      className="fixed inset-0 z-[70] flex touch-none items-center justify-center overflow-hidden bg-espresso/95 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: reduce ? 0 : 0.2, ease: EASE }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !zoomed) onClose();
+      }}
+    >
+      <button
+        ref={closeRef}
+        type="button"
+        onClick={onClose}
+        aria-label="Close enlarged view"
+        className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-bone/90 text-umber transition-colors hover:bg-bone"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          aria-hidden="true"
+          className="h-5 w-5"
+        >
+          <path d="M6 6l12 12M18 6L6 18" />
+        </svg>
+      </button>
+
+      {count > 1 && !zoomed && (
+        <>
+          <button
+            type="button"
+            onClick={() => goTo(active - 1)}
+            disabled={atStart}
+            aria-label="Previous image"
+            className={cn(arrowBase, "left-4", atStart ? "cursor-not-allowed opacity-0" : "hover:bg-bone")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-5 w-5">
+              <path d="M15 6l-6 6 6 6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo(active + 1)}
+            disabled={atEnd}
+            aria-label="Next image"
+            className={cn(arrowBase, "right-4", atEnd ? "cursor-not-allowed opacity-0" : "hover:bg-bone")}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="h-5 w-5">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </button>
+        </>
+      )}
+
+      <motion.div
+        key={active}
+        drag={zoomed ? true : count > 1 ? "x" : false}
+        dragConstraints={zoomed ? stageRef : undefined}
+        dragElastic={zoomed ? 0.05 : reduce ? 0 : 0.12}
+        dragMomentum={false}
+        onPointerDown={() => {
+          draggingRef.current = false;
+        }}
+        onDragStart={() => {
+          draggingRef.current = true;
+        }}
+        onDragEnd={onDragEnd}
+        onClick={() => {
+          if (draggingRef.current) return;
+          setZoomed((z) => !z);
+        }}
+        style={{ x, y, scale }}
+        className={cn("flex", zoomed ? "cursor-zoom-out" : "cursor-zoom-in")}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={images[active]}
+          alt={alt}
+          draggable={false}
+          className="max-h-[86vh] max-w-[92vw] select-none object-contain"
+        />
+      </motion.div>
+
+      {count > 1 && (
+        <div className="pointer-events-none absolute bottom-5 left-1/2 -translate-x-1/2 font-sans text-sm tracking-wide text-bone/80">
+          {active + 1} / {count}
+        </div>
+      )}
+    </motion.div>,
+    document.body,
+  );
+}
+
+/**
  * Centered quick-view modal: image gallery (main image + thumbnail row, swipeable
  * on mobile, arrow-navigable on desktop) plus the product details and the
  * Pre-order link. Closes via the X button, Escape, or a click on the backdrop.
@@ -223,10 +423,14 @@ export function QuickView({
   const reduce = useReducedMotion();
   const [mounted, setMounted] = useState(false);
   const [active, setActive] = useState(0);
+  const [zoomOpen, setZoomOpen] = useState(false);
 
   const panelRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  // read the latest zoom state inside the (stable) key handler without re-binding
+  const zoomOpenRef = useRef(false);
+  zoomOpenRef.current = zoomOpen;
 
   useEffect(() => setMounted(true), []);
 
@@ -244,13 +448,17 @@ export function QuickView({
     if (!product) return;
 
     setActive(0);
+    setZoomOpen(false);
     restoreRef.current = document.activeElement as HTMLElement | null;
     document.body.style.overflow = "hidden";
 
     const focusTimer = window.setTimeout(() => closeRef.current?.focus(), 30);
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      else if (e.key === "ArrowLeft") step(-1);
+      if (e.key === "Escape") {
+        // Escape closes the lightbox first (if open), otherwise the modal.
+        if (zoomOpenRef.current) setZoomOpen(false);
+        else onClose();
+      } else if (e.key === "ArrowLeft") step(-1);
       else if (e.key === "ArrowRight") step(1);
     };
     window.addEventListener("keydown", onKey);
@@ -283,11 +491,13 @@ export function QuickView({
 
   if (!mounted) return null;
 
-  return createPortal(
-    <AnimatePresence>
-      {product && (
-        <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-espresso/55 p-4 backdrop-blur-sm sm:p-6"
+  return (
+    <>
+      {createPortal(
+        <AnimatePresence>
+          {product && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-espresso/55 p-4 backdrop-blur-sm sm:p-6"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -335,6 +545,7 @@ export function QuickView({
                 active={active}
                 setActive={setActive}
                 reduce={reduce}
+                onOpenZoom={() => setZoomOpen(true)}
               />
 
               {/* details */}
@@ -386,10 +597,28 @@ export function QuickView({
                 </div>
               </div>
             </div>
-          </motion.div>
-        </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body,
       )}
-    </AnimatePresence>,
-    document.body,
+
+      {/* Rendered without AnimatePresence: it portals to <body>, and an
+          AnimatePresence wrapped around a portaled child never completes its
+          exit — which left the overlay mounted and froze the page. It fades in
+          via its own initial/animate and unmounts cleanly on close. */}
+      {product && zoomOpen && (
+        <Lightbox
+          images={gallery}
+          active={active}
+          setActive={setActive}
+          alt={product.alt}
+          name={product.name}
+          reduce={reduce}
+          onClose={() => setZoomOpen(false)}
+        />
+      )}
+    </>
   );
 }

@@ -10,16 +10,16 @@ function HeroText() {
         A limited founding batch
       </p>
 
-      <h1 className="mt-5 font-serif text-[clamp(2.75rem,6.5vw,4.5rem)] font-medium leading-[1.05] text-umber">
+      <h1 className="mt-3 font-serif text-[clamp(2.5rem,6.5vw,4.5rem)] font-medium leading-[1.05] text-umber sm:mt-5">
         The first Cana collection
       </h1>
 
-      <p className="mt-6 max-w-md font-sans text-[1.05rem] leading-relaxed text-espresso/90">
+      <p className="mt-4 max-w-md font-sans text-[1.02rem] leading-relaxed text-espresso/90 sm:mt-6 sm:text-[1.05rem]">
         Scripture, carved into the clay — heirloom pieces for the Christian
         home. Reserve yours now; the founding batch ships in 6–8 weeks.
       </p>
 
-      <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+      <div className="mt-6 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
         <LinkButton href="#pieces" variant="primary">
           Reserve your piece
         </LinkButton>
@@ -41,17 +41,17 @@ export function Hero() {
       aria-label="Cana — the first collection"
       className="relative isolate overflow-hidden bg-bone"
     >
-      {/* ── MOBILE (< sm): stacked — copy on bone up top, then the photo as a
-             square band below. A square crop is wide enough to hold the whole
-             trio (mug / dish / luminary), centered rather than cut off. ── */}
+      {/* ── MOBILE (< sm): stacked — compact copy on bone, then the photo
+             sized to the viewport so the pieces are visible without scrolling.
+             A right-pinned near-square crop keeps the mug / dish / luminary
+             trio centred rather than cut off. ── */}
       <div className="flex flex-col sm:hidden">
-        <div className="px-6 pb-12 pt-[104px]">
+        <div className="px-6 pb-5 pt-[88px]">
           <HeroText />
         </div>
-        <div className="relative aspect-square w-full">
-          {/* Square crop pinned to the right (object-x 100%) trims the empty
-              curtain on the left, pulling the mug / dish / luminary trio
-              toward the centre-left of the frame. */}
+        <div className="relative h-[52svh] max-h-[440px] min-h-[300px] w-full">
+          {/* right-pinned crop (object-x 100%) trims the empty curtain on the
+              left, pulling the trio toward the centre of the frame. */}
           <Image
             src="/images/hero.png"
             alt="A warm morning tablescape in soft natural light — Cana stoneware resting on a linen-draped table."
