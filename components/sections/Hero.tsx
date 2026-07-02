@@ -10,16 +10,16 @@ function HeroText() {
         A limited founding batch
       </p>
 
-      <h1 className="mt-3 font-serif text-[clamp(2.5rem,6.5vw,4.5rem)] font-medium leading-[1.05] text-umber sm:mt-5">
+      <h1 className="mt-3 font-serif text-[clamp(2.2rem,6.5vw,4.5rem)] font-medium leading-[1.05] text-umber sm:mt-5">
         The first Cana collection
       </h1>
 
-      <p className="mt-4 max-w-md font-sans text-[1.02rem] leading-relaxed text-espresso/90 sm:mt-6 sm:text-[1.05rem]">
+      <p className="mt-3 max-w-md font-sans text-[0.95rem] leading-snug text-espresso/90 sm:mt-6 sm:text-[1.05rem] sm:leading-relaxed">
         Scripture, carved into the clay — heirloom pieces for the Christian
         home. Reserve yours now; the founding batch ships in 6–8 weeks.
       </p>
 
-      <div className="mt-6 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
+      <div className="mt-5 flex flex-col items-start gap-3 sm:mt-9 sm:flex-row sm:items-center">
         <LinkButton href="#pieces" variant="primary">
           Reserve your piece
         </LinkButton>
@@ -45,11 +45,14 @@ export function Hero() {
              sized to the viewport so the pieces are visible without scrolling.
              A right-pinned near-square crop keeps the mug / dish / luminary
              trio centred rather than cut off. ── */}
-      <div className="flex flex-col sm:hidden">
-        <div className="px-6 pb-5 pt-[88px]">
+      <div className="flex min-h-[100svh] flex-col sm:hidden">
+        <div className="shrink-0 px-6 pb-4 pt-[80px]">
           <HeroText />
         </div>
-        <div className="relative h-[52svh] max-h-[440px] min-h-[300px] w-full">
+        {/* flex-1: the photo fills the rest of the viewport so its base sits at
+            the fold (above the iPhone toolbar, which svh accounts for) and the
+            pieces read high on the screen on first load. */}
+        <div className="relative min-h-[38svh] w-full flex-1 max-h-[440px]">
           {/* right-pinned crop (object-x 100%) trims the empty curtain on the
               left, pulling the trio toward the centre of the frame. */}
           <Image
