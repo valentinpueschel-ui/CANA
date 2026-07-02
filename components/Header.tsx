@@ -34,8 +34,13 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-40 bg-bone/95 backdrop-blur-sm transition-colors duration-300",
-        solid ? "border-b border-umber/10" : "border-b border-transparent",
+        // Mobile: sits at the top of the page and scrolls away with it — no
+        // sticky bar, and no bone-on-bone seam line (the header is transparent
+        // over the bone hero). Desktop: the original fixed, translucent overlay.
+        "absolute inset-x-0 top-0 z-40 transition-colors duration-300 sm:fixed sm:bg-bone/95 sm:backdrop-blur-sm",
+        solid
+          ? "sm:border-b sm:border-umber/10"
+          : "sm:border-b sm:border-transparent",
       )}
     >
       <Container className="flex h-[72px] items-center justify-between">

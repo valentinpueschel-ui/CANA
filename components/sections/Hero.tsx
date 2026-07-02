@@ -51,8 +51,11 @@ export function Hero() {
         </div>
         {/* flex-1: the photo fills the rest of the viewport so its base sits at
             the fold (above the iPhone toolbar, which svh accounts for) and the
-            pieces read high on the screen on first load. */}
-        <div className="relative min-h-[38svh] w-full flex-1 max-h-[440px]">
+            pieces read high on the screen on first load.
+            The mask fades the photo's own top edge to transparent so it melts
+            into the bone above — a true dissolve, not a bone wash over the image
+            (which previously read as a lighter horizontal bar). */}
+        <div className="relative min-h-[38svh] w-full flex-1 max-h-[440px] [-webkit-mask-image:linear-gradient(to_bottom,transparent,#000_72px)] [-webkit-mask-repeat:no-repeat] [-webkit-mask-size:100%_100%] [mask-image:linear-gradient(to_bottom,transparent,#000_72px)] [mask-repeat:no-repeat] [mask-size:100%_100%]">
           {/* right-pinned crop (object-x 100%) trims the empty curtain on the
               left, pulling the trio toward the centre of the frame. */}
           <Image
@@ -62,11 +65,6 @@ export function Hero() {
             priority
             sizes="100vw"
             className="cana-kenburns object-cover object-[100%_center]"
-          />
-          {/* gentle top feather so the photo melts out of the bone above it */}
-          <div
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-bone to-transparent"
           />
         </div>
       </div>
