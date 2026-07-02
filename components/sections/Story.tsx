@@ -1,7 +1,7 @@
 import { Section } from "../Section";
 import { Reveal } from "../Reveal";
 import { Photo } from "../Photo";
-import { Sprig } from "../Sprig";
+import { DrawnSprig } from "../DrawnSprig";
 
 export function Story() {
   return (
@@ -10,7 +10,7 @@ export function Story() {
         {/* image */}
         <Reveal className="order-1 lg:order-none">
           <Photo
-            src="/images/stamp.png"
+            src="/images/stamp.webp"
             alt="The Cana · Galilee maker's mark pressed into raw clay — a craft detail of the coin stamp on the base of each piece."
             label="Carved, never printed"
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -21,7 +21,7 @@ export function Story() {
         {/* text */}
         <Reveal delay={0.05} className="max-w-xl">
           <span aria-hidden className="block h-px w-12 bg-gold/70" />
-          <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-olive">
+          <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-oliveink">
             Our story
           </p>
           <h2
@@ -50,7 +50,7 @@ export function Story() {
             </p>
           </div>
 
-          <Sprig className="mt-8 h-5 w-20 text-olive/70" />
+          <DrawnSprig className="mt-8 h-5 w-20 text-olive/70" />
         </Reveal>
       </div>
     </Section>

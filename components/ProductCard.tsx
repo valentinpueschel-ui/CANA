@@ -13,9 +13,12 @@ function ViewCue() {
   return (
     <span
       aria-hidden
-      className="font-sans text-sm font-medium tracking-wide text-umber underline-offset-4 group-hover:underline"
+      className="inline-flex items-center gap-1 font-sans text-sm font-medium tracking-wide text-umber underline-offset-4 group-hover:underline"
     >
-      View details &rarr;
+      View details
+      <span className="transition-transform duration-300 ease-out group-hover:translate-x-1">
+        &rarr;
+      </span>
     </span>
   );
 }
@@ -31,6 +34,7 @@ function CardAction({ product }: { product: Product }) {
       <ShopifyBuyButton
         productId={product.shopifyId}
         domId={product.shopifyDomId}
+        trackName={product.name}
         className="relative z-20"
       />
     );
@@ -71,7 +75,7 @@ export function ProductCard({
           imgClassName={imgHover}
         />
         <div className="flex flex-col justify-center gap-4 p-6 sm:p-10 lg:p-14">
-          <span className="font-sans text-[0.7rem] uppercase tracking-wide2 text-olive">
+          <span className="font-sans text-[0.7rem] uppercase tracking-wide2 text-oliveink">
             The founding gift
           </span>
           <h3 className="font-serif text-h3 font-medium text-umber">
@@ -96,7 +100,7 @@ export function ProductCard({
   }
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-md bg-linen">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-md bg-linen ring-1 ring-transparent transition-[transform,box-shadow,border-color] duration-500 ease-out hover:-translate-y-1 hover:shadow-[0_20px_44px_-26px_rgba(58,46,32,0.55)] hover:ring-gold/40">
       <Photo
         src={product.image}
         alt={product.alt}
@@ -111,9 +115,9 @@ export function ProductCard({
         </h3>
 
         {product.verse ? (
-          <p className="font-serif text-lg leading-snug text-espresso/85">
+          <p className="cana-carved font-serif text-lg leading-snug text-espresso/85">
             &ldquo;{product.verse}&rdquo;
-            <span className="mt-1 block font-sans text-xs uppercase tracking-wide2 text-olive">
+            <span className="mt-1 block font-sans text-xs uppercase tracking-wide2 text-oliveink">
               {product.reference}
             </span>
           </p>

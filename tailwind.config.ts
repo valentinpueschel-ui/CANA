@@ -13,6 +13,9 @@ const config: Config = {
         umber: "#54442F",
         espresso: "#3A2E20",
         olive: "#7C7A53",
+        // darker olive for small text labels so they clear WCAG AA (the brand
+        // olive is reserved for decorative sprigs, rules, hovers)
+        oliveink: "#5E5C3B",
         gold: "#B5934E",
         terra: "#B5683F",
       },

@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { cn } from "@/lib/cn";
+import { track } from "@/lib/analytics";
 
 const SCRIPT_URL =
   "https://sdks.shopifycdn.com/buy-button/latest/buy-button-storefront.min.js";
@@ -89,7 +90,7 @@ function buildOptions(buttonText: string) {
     "background-color": UMBER,
     ":hover": { "background-color": UMBER_HOVER },
     ":focus": { "background-color": UMBER_HOVER },
-    "border-radius": "40px",
+    "border-radius": "6px",
   };
   const contents = {
     img: false,
@@ -134,13 +135,31 @@ export function ShopifyBuyButton({
   productId,
   domId,
   buttonText = "Pre-order",
+  trackName,
   className,
 }: {
   productId: string;
   domId: string;
   buttonText?: string;
+  /** product name for the InitiateCheckout analytics event */
+  trackName?: string;
   className?: string;
 }) {
+  // The SDK renders the button inside an iframe, so its click doesn't bubble.
+  // Detect interaction via the window losing focus to *this* button's iframe,
+  // and fire InitiateCheckout (a proxy — Shopify's own pixel covers checkout).
+  useEffect(() => {
+    const onBlur = () => {
+      const node = document.getElementById(domId);
+      const active = document.activeElement;
+      if (node && active && active.tagName === "IFRAME" && node.contains(active)) {
+        track("InitiateCheckout", trackName ? { content_name: trackName } : undefined);
+      }
+    };
+    window.addEventListener("blur", onBlur);
+    return () => window.removeEventListener("blur", onBlur);
+  }, [domId, trackName]);
+
   useEffect(() => {
     let cancelled = false;
 

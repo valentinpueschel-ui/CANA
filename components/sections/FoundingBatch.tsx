@@ -16,7 +16,7 @@ const points = [
   },
   {
     title: "No risk.",
-    body: "Secure checkout through Stripe. If for any reason we can't deliver, you're refunded in full.",
+    body: "Secure, encrypted checkout. If for any reason we can't deliver, you're refunded in full.",
   },
 ];
 

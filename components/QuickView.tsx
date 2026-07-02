@@ -192,6 +192,28 @@ function Gallery({
             <GalleryArrow dir="next" disabled={atEnd} onClick={() => go(active + 1)} />
           </>
         )}
+
+        {/* keyboard-accessible zoom affordance (the image also opens on tap) */}
+        <button
+          type="button"
+          onClick={onOpenZoom}
+          aria-label="View image larger"
+          className="absolute bottom-3 right-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-bone/85 text-umber backdrop-blur-sm transition hover:bg-bone"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            className="h-[18px] w-[18px]"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3M11 8v6M8 11h6" />
+          </svg>
+        </button>
       </div>
 
       {count > 1 && (
@@ -558,10 +580,10 @@ export function QuickView({
                 </h2>
 
                 {product.verse ? (
-                  <p className="font-serif text-xl italic leading-snug text-espresso/85">
+                  <p className="cana-carved font-serif text-xl italic leading-snug text-espresso/85">
                     &ldquo;{product.verse}&rdquo;
                     {product.reference ? (
-                      <span className="mt-1 block font-sans text-xs not-italic uppercase tracking-wide2 text-olive">
+                      <span className="mt-1 block font-sans text-xs not-italic uppercase tracking-wide2 text-oliveink">
                         {product.reference}
                       </span>
                     ) : null}
@@ -576,7 +598,7 @@ export function QuickView({
                 </p>
 
                 <div className="border-t border-umber/10 pt-5">
-                  <span className="font-sans text-[0.7rem] uppercase tracking-wide2 text-olive">
+                  <span className="font-sans text-[0.7rem] uppercase tracking-wide2 text-oliveink">
                     Materials &amp; care
                   </span>
                   <p className="mt-2 font-sans text-base leading-relaxed text-espresso/75">
@@ -592,9 +614,27 @@ export function QuickView({
                     <ShopifyBuyButton
                       productId={product.shopifyId}
                       domId={`shopify-modal-${product.id}`}
+                      trackName={product.name}
                     />
                   ) : null}
                 </div>
+
+                {/* reassurance right at the point of purchase */}
+                <ul className="flex flex-wrap gap-x-4 gap-y-1 font-sans text-xs text-espresso/70">
+                  {[
+                    "Ships in 6–8 weeks",
+                    "Gift-ready in a bone box",
+                    "Secure, encrypted checkout",
+                    "Full refund if undeliverable",
+                  ].map((t) => (
+                    <li key={t} className="flex items-center gap-1.5">
+                      <span aria-hidden className="text-olive">
+                        ✓
+                      </span>
+                      {t}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
               </motion.div>

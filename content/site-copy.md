@@ -36,7 +36,7 @@ This is our very first run, made to order. Reserve a piece now and we craft the 
 - **Hand-carved, made to be kept.** Warm ivory stoneware; the verse pressed into the clay, never a printed decal.
 - **Gift-ready.** Every piece arrives in a bone gift box with a blessing card, ready to give.
 - **Founding price.** A thank-you for being among the first to the table.
-- **No risk.** Secure checkout through Stripe. If for any reason we can't deliver, you're refunded in full.
+- **No risk.** Secure, encrypted checkout. If for any reason we can't deliver, you're refunded in full.
 
 ## The Blessing Card
 **Heading:** A blessing, in the box

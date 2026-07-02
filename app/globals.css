@@ -37,3 +37,45 @@ body {
   background: #b5934e33; /* gold @ low opacity */
   color: #3a2e20;
 }
+
+/* ── Delight: restrained, brand-appropriate motion & texture ───────────── */
+
+/* Ken-Burns: a very slow, calm drift on the hero photo. */
+@keyframes cana-kenburns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.08) translate3d(-1.2%, -1%, 0);
+  }
+}
+.cana-kenburns {
+  animation: cana-kenburns 26s ease-out both;
+  will-change: transform;
+}
+
+/* "Carved" verse type — a soft letterpress emboss, as if pressed into clay.
+   Light highlight below, faint shadow above; tone-on-tone, never harsh. */
+.cana-carved {
+  text-shadow:
+    0 1px 0 rgba(255, 252, 244, 0.55),
+    0 -1px 1px rgba(58, 46, 32, 0.12);
+}
+
+/* Fine paper/clay grain over the page — barely-there tactile warmth. */
+.cana-grain::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 140px 140px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cana-kenburns {
+    animation: none;
+  }
+}

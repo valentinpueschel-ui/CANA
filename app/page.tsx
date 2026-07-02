@@ -7,10 +7,13 @@ import { FoundingBatch } from "@/components/sections/FoundingBatch";
 import { BlessingCard } from "@/components/sections/BlessingCard";
 import { JoinTable } from "@/components/sections/JoinTable";
 import { Faq } from "@/components/sections/Faq";
+import { JsonLd } from "@/components/JsonLd";
+import { StickyReserve } from "@/components/StickyReserve";
 
 export default function Home() {
   return (
     <>
+      <JsonLd />
       <Header />
       <main id="main">
         <Hero />
@@ -22,6 +25,7 @@ export default function Home() {
         <Faq />
       </main>
       <Footer />
+      <StickyReserve />
     </>
   );
 }

@@ -18,7 +18,7 @@ export function Pieces() {
         {/* image — stacks on top on mobile, sits left on desktop */}
         <Reveal>
           <Photo
-            src="/images/hands.png"
+            src="/images/hands.webp"
             alt="Two hands cradling a warm ivory Cana piece in soft natural light, a thumb resting on the verse carved into the clay."
             label="Made to be held"
             sizes="(max-width: 1024px) 100vw, 50vw"
@@ -30,7 +30,7 @@ export function Pieces() {
         {/* text */}
         <Reveal delay={0.05} className="max-w-xl">
           <span aria-hidden className="block h-px w-12 bg-gold/70" />
-          <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-olive">
+          <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-oliveink">
             The craft
           </p>
           <h2 className="mt-4 font-serif text-h2 font-medium text-umber">

@@ -60,7 +60,7 @@ export function SectionHeading({
         )}
       />
       {eyebrow ? (
-        <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-olive">
+        <p className="mt-5 font-sans text-[0.72rem] uppercase tracking-wide2 text-oliveink">
           {eyebrow}
         </p>
       ) : null}

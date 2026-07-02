@@ -6,7 +6,7 @@ import { Container } from "../Container";
 function HeroText() {
   return (
     <div className="max-w-md lg:max-w-lg">
-      <p className="font-sans text-[0.72rem] uppercase tracking-wide2 text-olive">
+      <p className="font-sans text-[0.72rem] uppercase tracking-wide2 text-oliveink">
         A limited founding batch
       </p>
 
@@ -56,12 +56,12 @@ export function Hero() {
           {/* right-pinned crop (object-x 100%) trims the empty curtain on the
               left, pulling the trio toward the centre of the frame. */}
           <Image
-            src="/images/hero.png"
+            src="/images/hero.webp"
             alt="A warm morning tablescape in soft natural light — Cana stoneware resting on a linen-draped table."
             fill
             priority
             sizes="100vw"
-            className="object-cover object-[100%_center]"
+            className="cana-kenburns object-cover object-[100%_center]"
           />
           {/* gentle top feather so the photo melts out of the bone above it */}
           <div
@@ -75,12 +75,12 @@ export function Hero() {
       <div className="relative hidden min-h-[88svh] items-center pt-[72px] sm:flex">
         {/* full-bleed warm morning tablescape (empty space sits to the left) */}
         <Image
-          src="/images/hero.png"
+          src="/images/hero.webp"
           alt="A warm morning tablescape in soft natural light — Cana stoneware resting on a linen-draped table, with calm open space to the left."
           fill
           priority
           sizes="100vw"
-          className="object-cover object-[70%_center]"
+          className="cana-kenburns object-cover object-[70%_center]"
         />
 
         {/* Warm scrim behind the text only: bone fading left-to-right into

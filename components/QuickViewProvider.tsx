@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { Product } from "@/lib/products";
 import { QuickView } from "./QuickView";
+import { track } from "@/lib/analytics";
 
 type QuickViewContextValue = { open: (product: Product) => void };
 
@@ -24,7 +25,15 @@ export function useQuickView(): QuickViewContextValue {
 export function QuickViewProvider({ children }: { children: React.ReactNode }) {
   const [product, setProduct] = useState<Product | null>(null);
 
-  const open = useCallback((p: Product) => setProduct(p), []);
+  const open = useCallback((p: Product) => {
+    setProduct(p);
+    track("ViewContent", {
+      content_name: p.name,
+      content_type: "product",
+      value: Number(p.price.replace(/[^0-9.]/g, "")) || undefined,
+      currency: "USD",
+    });
+  }, []);
   const close = useCallback(() => setProduct(null), []);
 
   return (
