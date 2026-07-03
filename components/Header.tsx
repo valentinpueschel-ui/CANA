@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { Container } from "./Container";
+import { CartButton } from "./CartButton";
 
 const links = [
   { href: "#pieces", label: "The Pieces" },
@@ -69,12 +70,15 @@ export function Header() {
           >
             Reserve a piece
           </a>
+          <CartButton className="-mr-2" />
         </nav>
 
-        {/* mobile toggle */}
-        <button
-          type="button"
-          className="flex h-11 w-11 items-center justify-center md:hidden"
+        {/* mobile: cart + menu toggle */}
+        <div className="flex items-center gap-1 md:hidden">
+          <CartButton />
+          <button
+            type="button"
+            className="flex h-11 w-11 items-center justify-center"
           aria-expanded={open}
           aria-controls="mobile-menu"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -100,7 +104,8 @@ export function Header() {
               )}
             />
           </span>
-        </button>
+          </button>
+        </div>
       </Container>
 
       {/* mobile menu panel */}

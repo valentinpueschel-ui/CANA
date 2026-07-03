@@ -12,7 +12,7 @@ import {
 } from "framer-motion";
 import type { Product } from "@/lib/products";
 import { Photo } from "./Photo";
-import { ShopifyBuyButton } from "./ShopifyBuyButton";
+import { AddToCartControl } from "./ShopifyBuyButton";
 import { cn } from "@/lib/cn";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -606,15 +606,15 @@ export function QuickView({
                   </p>
                 </div>
 
-                <div className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-3">
+                <div className="mt-1 flex flex-col gap-4">
                   <span className="font-serif text-2xl text-umber">
                     {product.price}
                   </span>
                   {product.shopifyId ? (
-                    <ShopifyBuyButton
+                    <AddToCartControl
                       productId={product.shopifyId}
-                      domId={`shopify-modal-${product.id}`}
                       trackName={product.name}
+                      onAdd={onClose}
                     />
                   ) : null}
                 </div>
